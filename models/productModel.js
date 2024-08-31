@@ -78,7 +78,10 @@ const  ProductSchema = mongoose.Schema(
       }
 
     },{
-      timestamps : true
+      timestamps : true ,
+      // to enable virtual populate
+      toJSON : {virtuals : true },
+      toObject : {virtuals : true}
     }
   )
   // that's called mongoose middleware
@@ -86,6 +89,13 @@ const  ProductSchema = mongoose.Schema(
   // .pre more efficient than post .. since it will populate first and include the result in the find query .
   // advantages => 1) DRY don't need to write populate each time 
   //               2) Consistency all find query will be populated with the same way
+
+  // populate child for a parent we use .virtual() equivalent to joins
+  ProductSchema.virtual('reviews',{
+    ref : 'Review',
+    foreignField : 'product', // the field that exist in the Reviews Schema
+    localField : '_id' // the id of the product 
+  })
   ProductSchema.pre(/^find/, function(next) {
     this.populate({
       path: 'category',

@@ -45,6 +45,24 @@ const  UserSchema = mongoose.Schema(
         enum : ["admin","user","manager"],
         default : "user"
       },
+      // that is called child-reference happen in the parent model, a user can have many products in the fav list
+      // relation is one to many . so child will be a list here in the parent 
+      // in the sql databse that table will have a composite pk user-id and product-id
+      wishlist : [
+        {
+          type : mongoose.Schema.ObjectId ,
+          ref : "Product"
+        }
+      ],
+      address : [
+        {
+          id : {type : mongoose.Schema.Types.ObjectId} ,
+          alias : String ,
+          details : String,
+          phone : String,
+          postalCode : String
+        }
+      ],
       // active property when u delete a user make it false
       active : {
         type : Boolean ,

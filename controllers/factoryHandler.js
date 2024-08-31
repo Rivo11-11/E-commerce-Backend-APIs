@@ -8,12 +8,18 @@ const deleteDocument = async  (Model,name,id) => {
         {
             throw new ApiError(`${name} not found`,404)
         }
+    
     return document
    
 }
 
-const getDocument = async (Model,name,id) => {
-    const document = await Model.findById(id)
+const getDocument = async (Model,name,id,optionalParam = null) => {
+    let query = Model.findById(id)
+    if (optionalParam) 
+    {
+        query = query.populate(optionalParam)
+    }
+    const document = await query
     if (! document) 
         {
             throw new ApiError(`${name} not found`,404)
@@ -38,6 +44,9 @@ const updateDocument = async (Model,name,id,body) => {
         {
             throw new ApiError(`${name} not found`,404)
         }
+    
+     // trigger the save middleware . instead of creating  a specific middleware for it . i will link it to the onSave
+    await document.save()
     return document
 
 }

@@ -26,7 +26,7 @@ const postSubCategory = async (req,res) => {
 
 // access : public
 const getAllSubCategory= async (req,res) => {
-    const [subcategories,page,limit,total] = await getAllDocument(subCategoryModel.find(),req.query,['name' , 'slug'])
+    const [subcategories,page,limit,total] = await getAllDocument(subCategoryModel.find(req.filterObj),req.query,['name' , 'slug'])
     res.status(200).json({result : subcategories.length,page,totalPages: Math.ceil(total / limit * 1.0) , data : subcategories})
   
 }

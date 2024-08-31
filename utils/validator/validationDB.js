@@ -8,7 +8,33 @@ const BrandModel = require('../../models/brandModel')
 const SubcategoryModel = require('../../models/subCategoryModel')
 const ProductModel = require('../../models/productModel')
 const UserModel = require('../../models/userModel')
+const ReviewModel = require('../../models/reviewModel')
 const APIerror = require('../errorClass');
+
+
+
+// check if it belongs to the current user that logged in
+const checkReview = async (val,{req}) => {
+    const review = await ReviewModel.findById(val) 
+    if (! review) throw new Error('No product found with this id');
+    if (req.role === 'user' && review.user._id.toString() !== req.user._id.toString()) throw new Error('Not allowed for this user to do this action');
+}
+
+const checkProduct = async (productId) => {
+    const product = await ProductModel.findById(productId)
+    if (!product ) throw new Error('No product found with this id');
+};
+
+
+// only one review per user per product
+const checkUnique = async (val,{req}) => {
+    const review = await ReviewModel.findOne({user : req.user._id, product : req.body.product })
+    if (review ) throw new Error('Only 1 review per user per product is allowed');
+};
+const checkUser = async (userId) => {
+    const user = await UserModel.findById(userId)
+    if (!user ) throw new Error('No user found with this id');
+};
 
 const checkCategory = async (categoryId) => {
     const category = await CategoryModel.findById(categoryId)
@@ -101,5 +127,9 @@ module.exports = {
     checkDuplicateUser,
     checkOldPassword,
     checkEmail,
-    checkPassword
+    checkPassword,
+    checkUser,
+    checkProduct,
+    checkUnique,
+    checkReview
 }

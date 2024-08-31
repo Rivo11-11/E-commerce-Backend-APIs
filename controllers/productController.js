@@ -1,9 +1,6 @@
 const slugify = require('slugify')
 const productModel = require('../models/productModel')
-const ApiError = require('../utils/errorClass')
-const APIFeatures = require('../utils/apiFeatures')
-const {deleteDocument} = require('./factoryHandler')
-
+const {deleteDocument,getDocument,getAllDocument,updateDocument,createDocument} = require('./factoryHandler')
 const {postMixImage,resizeMixImage} = require('../middlewares/uploadImage')
 
 const Images = [
@@ -23,48 +20,25 @@ const resizeUploadImages = resizeMixImage('products',imageConfig)
 // access : private (admin-manager)
 const postProduct = async (req,res) => {
     req.body.slug = slugify(req.body.title)
-    const product = await productModel.create(req.body)
+    const product = await createDocument(productModel,req.body)
     res.status(201).json({data : product})
     } 
 
 
 
 // access : public
-const getAllProduct = async (req, res) => {
-    
-      const features = new APIFeatures(productModel.find(), req.query)
-        .filter()
-        .sort()
-        .limitFields()
-        .search(['title','description']);
-  
-      const total = await features.lengthOfData(); // Clone and execute the query to get the total length
-      features.paginate();
-      const [page, limit] = features.page();
-      const products = await features.execute();
-  
-      res.status(200).json({
-        result: products.length,
-        page,
-        totalPages: Math.ceil(total / limit * 1.0),
-        data: products
-      });
-    
-  };
+const getAllProduct= async (req,res) => {
+    const [products,page,limit,total] = await getAllDocument(productModel.find(),req.query,['title'])
+    res.status(200).json({result : products.length,page,totalPages: Math.ceil(total / limit * 1.0) , data : products})
+   }
   
 
-  
-
-  // access : public
+// access : public
 const getProduct = async (req, res) => {
-    const {id} = req.params
-    const Product = await productModel.findById(id).populate({path:'category',select : "name -_id"})
-    if (! Product) 
-        {
-            throw new ApiError('Product not found',404)
-           
-        }
-    res.status(200).json(Product)
+    // add the reviews populate
+    const product = await getDocument(productModel,'Product',req.params.id,'reviews')
+    res.status(200).json(product)
+   
     
 }
 
@@ -78,17 +52,8 @@ const deleteProduct = async (req,res) => {
 
 // access : private (admin-manager)
 const updateProduct = async (req,res) => {
-    const {id} = req.params 
-    if (req.body.title)
-        {
-    req.body.slug = slugify(req.body.title)
-        }
-    const Product = await productModel.findByIdAndUpdate({_id : id},req.body,{new : true})
-    if (! Product) 
-        {
-            throw new ApiError('Product not found',404)
-        }
-    res.status(200).json(Product)
+    const product = await updateDocument(productModel,'Product',req.params.id,req.body)
+    res.status(200).json(product)
 
 }
 module.exports = {
